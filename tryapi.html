@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malicious Domain Checker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #result {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-x: auto; /* Allow horizontal scrolling if needed */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Check Domain Safety</h1>
+<input type="text" id="domainInput" placeholder="Enter domain URL" value="https://vryjm.page.link/jS6a">
+<button id="checkButton">Check Domain</button>
+
+<div id="result"></div>
+
+<script>
+    document.getElementById('checkButton').addEventListener('click', function() {
+        const domain = document.getElementById('domainInput').value;
+        const url = "https://malicious-scanner.p.rapidapi.com/rapid/url";
+        const headers = {
+            "x-rapidapi-key": "1604e06b15msh72f3c11668f51b8p1a7296jsn2774dabae534",
+            "x-rapidapi-host": "malicious-scanner.p.rapidapi.com"
+        };
+
+        const querystring = { url: domain };
+
+        fetch(url + '?' + new URLSearchParams(querystring), {
+            method: 'GET',
+            headers: headers
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Create a table to display the result
+            let tableHTML = '<table><thead><tr><th>Key</th><th>Value</th></tr></thead><tbody>';
+            
+            // Check if data is an object and iterate over its keys
+            if (typeof data === 'object') {
+                for (const key in data) {
+                    if (data.hasOwnProperty(key)) {
+                        tableHTML += `<tr><td>${key}</td><td>${JSON.stringify(data[key], null, 2)}</td></tr>`;
+                    }
+                }
+            } else {
+                tableHTML += '<tr><td colspan="2">No valid data returned.</td></tr>';
+            }
+
+            tableHTML += '</tbody></table>';
+            
+            // Display the table in the result div
+            document.getElementById('result').innerHTML = tableHTML;
+        })
+        .catch(error => {
+            document.getElementById('result').innerHTML = 'Error fetching data: ' + error.message;
+        });
+    });
+</script>
+
+</body>
+</html>

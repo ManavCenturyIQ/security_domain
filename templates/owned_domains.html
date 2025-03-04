@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Owned Domains</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+      integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMt23cez/3paNdF+Zl5p5G5r6M5Z5V5V5V5V5V5"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+
+    <style>
+      .table-container {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .table th,
+      .table td {
+        vertical-align: middle;
+      }
+      .filter-container {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="m-3">
+      <h1 class="mb-4">Owned Domains</h1>
+      <div class="filter-container">
+        <label for="searchInput" class="form-label">Search Domains:</label>
+        <input
+          type="text"
+          id="searchInput"
+          class="form-control w-auto d-inline-block"
+          placeholder="Enter domain name"
+        />
+        <button
+          id="searchButton"
+          class="btn btn-secondary"
+          onclick="searchDomains()"
+        >
+          Search
+        </button>
+        <label for="providerFilter" class="form-label"
+          >Filter by Provider:</label
+        >
+
+        <select id="providerFilter" class="form-select w-auto d-inline-block">
+          <option value="all">All</option>
+          <option value="Only Domains">Only Domains</option>
+          <option value="GoDaddy">GoDaddy</option>
+        </select>
+        <label for="reminderFilter" class="form-label ms-3"
+          >Filter by Reminder:</label
+        >
+        <select id="reminderFilter" class="form-select w-auto d-inline-block">
+          <option value="all">All</option>
+          <option value="red">Expired</option>
+          <option value="orange">Expiring in 30 days</option>
+          <option value="green">Expiring beyond 30 days</option>
+        </select>
+        <label for="statusFilter" class="form-label ms-3"
+          >Filter by Status:</label
+        >
+        <select id="statusFilter" class="form-select w-auto d-inline-block">
+          <option value="all">All</option>
+          <option value="ActiveParked">ActiveParked</option>
+          <option value="ActiveDNS Forwarding">ActiveDNS Forwarding</option>
+          <option value="ActiveRedirected">ActiveRedirected</option>
+          <option value="Active">Active</option>
+        </select>
+        
+        <button class="btn btn-primary" onclick="openAddProviderForm()">
+          Add Provider
+        </button>
+
+        <!-- Add a form for adding a new provider -->
+        <div id="addProviderForm" class="d-none">
+          <input
+            type="text"
+            id="newProviderName"
+            placeholder="Enter new provider name"
+          />
+          <button onclick="addProvider()">Add</button>
+        </div>
+        <button
+          type="button"
+          class="btn  btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#addDomainModal"
+        >
+          Add Domain
+        </button>
+        <button
+          id="sendAlertButton"
+          class="btn btn-primary"
+          onclick="sendAlert()"
+        >
+          Send Expiry Alert
+        </button>
+        <button id="exportButton" class="btn btn-primary">Export to Excel</button>
+      </div>
+      <!-- Add Domain Form -->
+      <div
+        class="modal fade"
+        id="addDomainModal"
+        tabindex="-1"
+        aria-labelledby="addDomainModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addDomainModalLabel">
+                Add New Domain
+              </h5>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Close"
+              ></button>
+            </div>
+            <div class="modal-body">
+              <form id="domainForm">
+                <div class="mb-3">
+                  <label for="domainName" class="form-label"
+                    >Domain Name:</label
+                  >
+                  <input
+                    type="text"
+                    id="domainName"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="domainProvider" class="form-label"
+                    >Domain Provider:</label
+                  >
+                  <select id="domainProvider" class="form-select" required>
+                    {% for provider in providers %}
+                      <option value="{{ provider }}">{{ provider }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="expiryDate" class="form-label"
+                    >Expiry Date:</label
+                  >
+                  <input
+                    type="date"
+                    id="expiryDate"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="status" class="form-label">Status:</label>
+                  <select id="status" class="form-select" required>
+                    <option value="Active">Active</option>
+                    <option value="ActiveParked">ActiveParked</option>
+                    <option value="ActiveDNS Forwarding">
+                      ActiveDNS Forwarding
+                    </option>
+                    <option value="ActiveRedirected">ActiveRedirected</option>
+                  </select>
+                </div>
+                <div class="mb-3">
+                  <label for="renewalPrice" class="form-label"
+                    >Renewal Price:</label
+                  >
+                  <div class="input-group">
+                    <span class="input-group-text">AED</span>
+                    <input
+                      type="text"
+                      id="renewalPrice"
+                      class="form-control"
+                      placeholder="Not Available or Amount"
+                      required
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  onclick="addDomain()"
+                >
+                  Add Domain
+                </button>
+                
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="table-container">
+        <table class="table table-bordered table-hover">
+          <!-- <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th>Domain Name</th>
+              <th>Domain Provider</th>
+              <th>Expiry Date</th>
+              <th>Reminder</th>
+              <th>Status</th>
+              <th>Renewal Price</th>
+            </tr>
+          </thead> -->
+          <thead class="table-dark">
+            <tr>
+              <th>Sr. No.</th>
+              <th>Domain Name</th>
+              <th>Domain Provider</th>
+              <th>Expiry Date</th>
+              <th>Reminder</th>
+              <th>Status</th>
+              <th>Renewal Price</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for domain in domains %}
+            <tr
+              data-provider="{{ domain['Provider'] }}"
+              data-status="{{ domain.get('Status', 'N/A') }}"
+            >
+              <td>{{ loop.index }}</td>
+              <td>{{ domain['Domain Name'] }}</td>
+              <td>{{ domain['Provider'] }}</td>
+              <td>
+                {% if domain.Provider == 'Only Domains' %}
+                  {{ domain.get('Expiry Renewal Date', 'N/A') }}
+                {% elif domain.Provider == 'GoDaddy' %}
+                  {{ domain.get('Expiration Date', 'N/A') }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </td>
+              
+              <td class="reminder"></td>
+              <td class="data-status">{{ domain.get('Status', 'N/A') }}</td>
+              <td>
+                {% if domain.get('Renewal Price') and domain['Renewal Price'] !=
+                'Not Available' %}
+                <span class="price-mask">xxxx</span>
+                <button class="btn btn-link btn-sm toggle-price">
+                  <svg
+                    viewBox="64 64 896 896"
+                    focusable="false"
+                    data-icon="eye"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                    ></path>
+                  </svg>
+                  <svg
+                    class="eye-slash-icon d-none"
+                    viewBox="64 64 896 896"
+                    focusable="false"
+                    data-icon="eye"
+                    width="1em"
+                    height="1em"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M942.2 486.2C847.4 286.5 704.1 186 512 186c-192.2 0-335.4 100.5-430.2 300.3a60.3 60.3 0 000 51.5C176.6 737.5 319.9 838 512 838c192.2 0 335.4-100.5 430.2-300.3 7.7-16.2 7.7-35 0-51.5zM512 766c-161.3 0-279.4-81.8-362.7-254C232.6 339.8 350.7 258 512 258c161.3 0 279.4 81.8 362.7 254C791.5 684.2 673.4 766 512 766zm-4-430c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm0 288c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z"
+                    ></path>
+                  </svg>
+                </button>
+                <span class="actual-price d-none"
+                  >{{ domain['Renewal Price'] }}</span
+                >
+                {% else %} Not Available {% endif %}
+              </td>
+              <td>
+                <button
+                  class="delete-domain"
+                  onclick="deleteDomain(this, '{{ domain['Domain Name'] }}')"
+                >
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const rows = Array.from(document.querySelectorAll("tbody tr"));
+    
+        // Sort rows alphabetically based on the domain name (assuming it's in the second cell)
+        rows.sort((a, b) => {
+          const domainA = a.cells[1].textContent.toLowerCase();
+          const domainB = b.cells[1].textContent.toLowerCase();
+          return domainA.localeCompare(domainB);
+        });
+    
+        // Append sorted rows back to the table body
+        const tbody = document.querySelector("tbody");
+        rows.forEach((row) => tbody.appendChild(row));
+    
+        // ... existing code
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        function searchDomains() {
+          const searchInput = document
+            .getElementById("searchInput")
+            .value.toLowerCase();
+          const rows = document.querySelectorAll("tbody tr");
+          let serialNumber = 1;
+          rows.forEach((row) => {
+            const domainName = row.cells[1].textContent.toLowerCase();
+            if (domainName.includes(searchInput)) {
+              row.style.display = "";
+              row.querySelector("td").textContent = serialNumber++;
+            } else {
+              row.style.display = "none";
+            }
+          });
+        }
+
+        // Attach search function to the button
+        document
+          .getElementById("searchButton")
+          .addEventListener("click", searchDomains);
+        const toggleButtons = document.querySelectorAll(".toggle-price");
+        toggleButtons.forEach((button) => {
+          button.addEventListener("click", function () {
+            const priceMask = this.previousElementSibling;
+            const actualPrice = this.nextElementSibling;
+            const eyeIcon = this.querySelector(".eye-icon");
+            const eyeSlashIcon = this.querySelector(".eye-slash-icon");
+
+            if (actualPrice.classList.contains("d-none")) {
+              priceMask.style.display = "none";
+              actualPrice.classList.remove("d-none");
+              eyeIcon.classList.add("d-none");
+              eyeSlashIcon.classList.remove("d-none");
+            } else {
+              priceMask.style.display = "inline";
+              actualPrice.classList.add("d-none");
+              eyeIcon.classList.remove("d-none");
+              eyeSlashIcon.classList.add("d-none");
+            }
+          });
+        });
+      });
+    </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        
+        const providerFilter = document.getElementById("providerFilter");
+        const reminderFilter = document.getElementById("reminderFilter");
+        const statusFilter = document.getElementById("statusFilter");
+        const rows = document.querySelectorAll("tbody tr");
+
+        function filterRows() {
+          const selectedProvider = providerFilter.value;
+          const selectedReminder = reminderFilter.value;
+          const selectedStatus = statusFilter.value;
+          let serialNumber = 1;
+          rows.forEach((row) => {
+            const providerMatch =
+              selectedProvider === "all" ||
+              row.getAttribute("data-provider") === selectedProvider;
+            const reminderMatch =
+              selectedReminder === "all" ||
+              row.querySelector(".reminder").style.backgroundColor ===
+                selectedReminder;
+            const statusMatch =
+              selectedStatus === "all" ||
+              row.getAttribute("data-status") === selectedStatus;
+            if (providerMatch && reminderMatch && statusMatch) {
+              row.style.display = "";
+              row.querySelector("td").textContent = serialNumber++;
+            } else {
+              row.style.display = "none";
+            }
+          });
+        }
+
+        providerFilter.addEventListener("change", filterRows);
+        reminderFilter.addEventListener("change", filterRows);
+        statusFilter.addEventListener("change", filterRows);
+
+        // Reminder logic
+        rows.forEach((row) => {
+          const expiryDateCell = row.cells[3];
+          const reminderCell = row.cells[4];
+          const expiryDateText = expiryDateCell.textContent.trim();
+
+          if (expiryDateText !== "N/A") {
+            let expiryDate;
+            if (expiryDateText.includes("-")) {
+              // Assuming format is "day-month-year"
+              const [day, month, year] = expiryDateText.split("-");
+              expiryDate = new Date(year, month - 1, day);
+            } else if (expiryDateText.includes("/")) {
+              // Assuming format is "month/day/year"
+              const [month, day, year] = expiryDateText.split("/");
+              expiryDate = new Date(year, month - 1, day);
+            } else {
+              // Handle other formats if necessary
+              expiryDate = new Date(expiryDateText);
+            }
+
+            const currentDate = new Date();
+            const timeDiff = expiryDate - currentDate;
+            const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+            if (dayDiff <= 0) {
+              reminderCell.style.backgroundColor = "red";
+            } else if (dayDiff <= 30) {
+              reminderCell.style.backgroundColor = "orange";
+            } else {
+              reminderCell.style.backgroundColor = "green";
+            }
+          }
+        });
+
+        filterRows(); // Initial filter
+      });
+    </script>
+    <script>
+      function sendAlert() {
+        fetch("/send_expiry_alert", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.message);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            alert("An error occurred while sending the alert.");
+          });
+      }
+    </script>
+    <script>
+      function openAddDomainForm() {
+        const form = document.getElementById("addDomainForm");
+        form.classList.toggle("d-none");
+      }
+
+      function addDomain() {
+        const domainName = document.getElementById("domainName").value;
+        const domainProvider = document.getElementById("domainProvider").value;
+        const expiryDate = document.getElementById("expiryDate").value;
+        const status = document.getElementById("status").value;
+        const renewalPrice =
+          document.getElementById("renewalPrice").value || "Not Available";
+        const dateParts = expiryDate.split("-");
+        const formattedExpiryDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`;
+        const domainData = {
+          domainName,
+          domainProvider,
+          expiryDate: formattedExpiryDate,
+          status,
+          renewalPrice,
+        };
+
+        fetch("/add_domain", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(domainData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(data.message);
+            if (data.success) {
+              location.reload(); // Reload the page to show the new domain
+            }
+          })
+          .catch((error) => {
+            console.error("Error adding domain:", error);
+          });
+      }
+    </script>
+    <script>
+      function deleteDomain(button, domainName) {
+        fetch("/delete_domain", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ domain: domainName }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              // Remove the row from the table
+              const row = button.closest("tr");
+              row.remove();
+            } else {
+              alert(data.message);
+            }
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+    </script>
+    <script>
+      function openAddProviderForm() {
+        const form = document.getElementById("addProviderForm");
+        form.classList.toggle("d-none");
+      }
+
+      function addProvider() {
+        const newProviderName = document
+          .getElementById("newProviderName")
+          .value.trim();
+        if (newProviderName) {
+          const providerSelect = document.getElementById("domainProvider");
+          const newOption = document.createElement("option");
+          newOption.value = newProviderName;
+          newOption.textContent = newProviderName;
+          providerSelect.appendChild(newOption);
+
+          // Optionally, you can reset the form and hide it
+          document.getElementById("newProviderName").value = "";
+          openAddProviderForm();
+        } else {
+          alert("Please enter a provider name.");
+        }
+      }
+    </script>
+    <script>
+      function addProvider() {
+        const newProviderName = document
+          .getElementById("newProviderName")
+          .value.trim();
+        if (newProviderName) {
+          fetch("/add_provider", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ providerName: newProviderName }),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              alert(data.message);
+              if (data.success) {
+                // Add the new provider to the dropdown without reloading the page
+                const providerSelect =
+                  document.getElementById("domainProvider");
+                const newOption = document.createElement("option");
+                newOption.value = newProviderName;
+                newOption.textContent = newProviderName;
+                providerSelect.appendChild(newOption);
+
+                // Optionally, reset the form and hide it
+                document.getElementById("newProviderName").value = "";
+                openAddProviderForm();
+              }
+            })
+            .catch((error) => console.error("Error:", error));
+        } else {
+          alert("Please enter a provider name.");
+        }
+      }
+    </script>
+    <script>
+      document.getElementById("exportButton").addEventListener("click", function () {
+        const rows = document.querySelectorAll("tbody tr");
+        const data = [];
+    
+        rows.forEach((row) => {
+          if (row.style.display !== "none") {
+            const rowData = {};
+            row.querySelectorAll("td").forEach((cell, index) => {
+              rowData[`column${index}`] = cell.textContent;
+            });
+            data.push(rowData);
+          }
+        });
+    
+        fetch("/export_to_excel", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => response.blob())
+          .then((blob) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "report.xlsx";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          })
+          .catch((error) => console.error("Error:", error));
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

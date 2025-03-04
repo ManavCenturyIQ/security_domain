@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoDaddy Domains</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .table-container {
+            max-width: 90%;
+            margin: auto;
+            overflow-x: auto;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: #fff;
+        }
+
+        thead {
+            background-color: #007bff;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tbody tr:hover {
+            background-color: #d3e3fc;
+            transition: 0.3s ease-in-out;
+        }
+
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>GoDaddy Domain Information</h1>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Domain Name</th>
+                    <th>TLD</th>
+                    <th>Create Date</th>
+                    <th>Ownership Date</th>
+                    <th>Expiration Date</th>
+                    <th>Auto-renew</th>
+                    <th>Status</th>
+                    <th>Listing Status</th>
+                    <th>Type</th>
+                    <th>Nameserver 1</th>
+                    <th>Nameserver 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for domain in domains %}
+                <tr>
+                    <td>{{ domain['Domain Name'] }}</td>
+                    <td>{{ domain['TLD'] }}</td>
+                    <td>{{ domain['Create Date'] }}</td>
+                    <td>{{ domain['Ownership Date'] }}</td>
+                    <td>{{ domain['Expiration Date'] }}</td>
+                    <td>{{ domain['Auto-renew'] }}</td>
+                    <td>{{ domain['Status'] }}</td>
+                    <td>{{ domain['ListingStatus'] }}</td>
+                    <!-- <td>{{ domain['Type'] }}</td> -->
+                    <td>{{ domain['Nameserver1'] }}</td>
+                    <td>{{ domain['Nameserver2'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
