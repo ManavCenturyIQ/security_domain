@@ -20,14 +20,14 @@
 
     <title>Domain Management</title>
     <style>
-      body {
+      /* body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         margin: 0;
         padding: 0;
         background-color: #f4f4f9;
         color: #333;
         display: flex;
-      }
+      } */
       .sidebar {
         width: 250px;
         background: #2c3e50;
@@ -197,7 +197,7 @@
     </style>
   </head>
   <body>
-    <div style="display: flex">
+    <div class="d-flex">
       <div class="sidebar">
         <h5>DOMAIN CHECK</h5>
 <div class="dropdown-one" style="flex-direction: column;" onclick="toggleDomainDropdown()">
@@ -254,7 +254,7 @@
        
       </div>
       </div>
-      <div style="display: flex; flex-direction: column">
+      <div  style="display: flex; flex-direction: column">
         <nav class="navbar navbar-expand navbar-light bg-white topbar  static-top shadow px-3 " style="justify-content: flex-end;" >
           <!-- Sidebar Toggle (Topbar) -->
           <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
@@ -483,7 +483,7 @@
           <h1>Domain Management</h1>
           <div style="display: flex; justify-content: space-between">
             <a href="{{ url_for('domain_check') }}" class="btn"
-              >Check Domains</a
+              > </a
             >
             <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
           </div>

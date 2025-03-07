@@ -465,7 +465,7 @@ def store_expiring_domains():
 
     # Get today's date and the date two days from now
     today = datetime.now().date()
-    two_days_from_now = today + timedelta(days=2)
+    two_days_from_now = today + timedelta(days=0)
 
     # Check for domains that are expired or expiring in 2 days
     for domain in all_domains:
@@ -702,7 +702,7 @@ def list_of_domains():
 
 @app.route("/owned_domains")
 def owned_domains():
-    logging.basicConfig(level=logging.DEBUG)
+    # logging.basicConfig(level=logging.DEBUG)
     # Fetch data from both collections
     only_domains = list(
         only_domain_collection.find(
@@ -809,30 +809,23 @@ def add_domain():
 
     return jsonify({"success": True, "message": "Domain added successfully!"})
 
-
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+# logging.basicConfig(level=logging.DEBUG)
 def send_expiring_domains_email():
     try:
-        # Calculate the date 30 days from today
-        today = datetime.today()
-        future_date = today + timedelta(days=30)
-
-        # Convert future_date to the format used in the database
-        future_date_str = future_date.strftime("%d-%m-%Y")
-
-        # Fetch expiring domains from the expiring_domains_collection
+        # Fetch all domains from the expiring_domains_collection
         expiring_domains = list(
             expiring_domains_collection.find(
-                {"Expiry Renewal Date": {"$lte": future_date_str}},
+                {},  # No filter to fetch all documents
                 {"Domain Name": 1, "Expiry Renewal Date": 1, "Provider": 1, "_id": 0},
             )
         )
 
         if not expiring_domains:
-            return "No expiring domains found."
+            return "No domains found in the expiring domains collection."
 
         # Create a DataFrame from the expiring domains
         df = pd.DataFrame(expiring_domains)
-
         # Save the DataFrame to an Excel file in memory
         excel_buffer = BytesIO()
         with pd.ExcelWriter(excel_buffer, engine="xlsxwriter") as writer:
@@ -852,7 +845,7 @@ def send_expiring_domains_email():
         # Send the email with the Excel attachment
         response = ses_client.send_raw_email(
             Source="donotreply@cfc.ae",
-            Destinations=["manavajmera03@gmail.com"],
+            Destinations=["manav.ajmera@centuryiq.in"],
             RawMessage={
                 "Data": f"""From: {"donotreply@cfc.ae"}
 To: {"manavajmera03@gmail.com"}
@@ -881,6 +874,7 @@ Content-Disposition: attachment; filename="expiring_domains.xlsx"
     except Exception as e:
         logging.error(f"Error sending email: {str(e)}")
         return f"Error sending email: {str(e)}"
+
 
 
 @app.route("/send_expiry_alert", methods=["POST"])

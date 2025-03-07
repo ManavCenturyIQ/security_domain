@@ -111,7 +111,7 @@
                     <h1>Welcome, {{ session['username'] }}!</h1>
                     <p>Explore the tools and features we’ve crafted for you.</p>
                     <div class="d-grid gap-3">
-                        <a href="{{ url_for('domain_check') }}" class="btn btn-custom">Check Domains</a>
+                        <a href="{{ url_for('list_of_domains') }}" class="btn btn-custom">Dashboard</a>
                         <a href="{{ url_for('logout') }}" class="btn btn-custom">Logout</a>
                     </div>
                 {% else %}
