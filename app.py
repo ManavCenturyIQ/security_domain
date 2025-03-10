@@ -409,6 +409,182 @@ def mark_as_malicious():
     malicious_domains_collection.insert_one({"domain": domain})
     return jsonify({"message": "Domain marked as malicious successfully."}), 200
 
+BODY_TEXT_TEMPLATE_renew = "Renew this domain: {}"
+BODY_HTML_TEMPLATE_renew = """
+<html>
+<head></head>
+<body>
+  <p>Renew this domain: <span style="font-weight:bold;">{}</span></p>
+</body>
+</html>
+"""
+@app.route("/send-email", methods=["POST"])
+def send_email():
+    data = request.get_json()
+    domain = data.get("domain")
+    message = data.get("message")
+
+    # Logic to send email using AWS SES
+    try:
+        # Initialize the SES client
+        ses_client = boto3.client(
+            'ses',
+            region_name=AWS_REGION,
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY
+        )
+
+        # Send the email
+        response = ses_client.send_email(
+            Source=SENDER,
+            Destination={
+                'ToAddresses': ["manav.ajmera@centuryiq.in"]
+            },
+            Message={
+                'Subject': {
+                    'Data': "Renew Domain Request",
+                    'Charset': CHARSET
+                },
+                'Body': {
+                    'Text': {
+                        'Data': "Please Renew this domain: {domain}",
+                        'Charset': CHARSET
+                    },
+                    'Html': {
+                        'Data': BODY_TEXT_TEMPLATE_renew.format(domain),
+                        'Charset': CHARSET
+                    }
+                }
+            }
+        )
+
+        return jsonify({"message": f"Email sent successfully! Message ID: {response['MessageId']}"}), 200
+
+    except NoCredentialsError:
+        logging.error("NoCredentialsError: AWS credentials not available.")
+        return jsonify({"message": "Credentials not available. Please check your AWS access and secret keys."}), 500
+    except PartialCredentialsError:
+        logging.error("PartialCredentialsError: Incomplete AWS credentials provided.")
+        return jsonify({"message": "Incomplete credentials provided."}), 500
+    except Exception as e:
+        logging.error(f"Error sending email: {str(e)}")
+        return jsonify({"message": f"Error sending email: {str(e)}"}), 500
+BODY_HTML_TEMPLATE_donotrenew = """
+<html>
+<head></head>
+<body>
+  <p>Do not Renew this domain: <span style="font-weight:bold;">{}</span></p>
+</body>
+</html>
+"""
+@app.route("/send_email_dontrenew", methods=["POST"])
+def send_email_dontrenew():
+    data = request.get_json()
+    domain = data.get("domain")
+    message2 = data.get("message")
+
+    # Logic to send email using AWS SES
+    try:
+        # Initialize the SES client
+        ses_client = boto3.client(
+            'ses',
+            region_name=AWS_REGION,
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY
+        )
+
+        # Send the email
+        response = ses_client.send_email(
+            Source=SENDER,
+            Destination={
+                'ToAddresses': ["manav.ajmera@centuryiq.in"]
+            },
+            Message={
+                'Subject': {
+                    'Data': "Do not Renew Domain Request",
+                    'Charset': CHARSET
+                },
+                'Body': {
+                    'Text': {
+                        'Data': "Don't Renew this domain: {domain}",
+                        'Charset': CHARSET
+                    },
+                    'Html': {
+                        'Data': BODY_HTML_TEMPLATE_donotrenew.format(domain),
+                        'Charset': CHARSET
+                    }
+                }
+            }
+        )
+
+        return jsonify({"message": f"Email sent successfully! Message ID: {response['MessageId']}"}), 200
+
+    except NoCredentialsError:
+        logging.error("NoCredentialsError: AWS credentials not available.")
+        return jsonify({"message": "Credentials not available. Please check your AWS access and secret keys."}), 500
+    except PartialCredentialsError:
+        logging.error("PartialCredentialsError: Incomplete AWS credentials provided.")
+        return jsonify({"message": "Incomplete credentials provided."}), 500
+    except Exception as e:
+        logging.error(f"Error sending email: {str(e)}")
+        return jsonify({"message": f"Error sending email: {str(e)}"}), 500
+
+@app.route("/renew-domain", methods=["POST"])
+def renew_domain():
+    data = request.get_json()
+    domain = data.get("domain")
+
+    try:
+        # Determine the provider by checking both collections
+        domain_data = only_domain_collection.find_one({"Domain Name": domain})
+        if domain_data:
+            provider = "Only Domains"
+            collection = only_domain_collection
+            expiry_field = "Expiry Renewal Date"
+        else:
+            domain_data = godaddy_collection.find_one({"Domain Name": domain})
+            if domain_data:
+                provider = "GoDaddy"
+                collection = godaddy_collection
+                expiry_field = "Expiration Date"
+            else:
+                logging.error("Domain not found in any provider's collection.")
+                return jsonify({"message": "Domain not found."}), 404
+
+        # Fetch the current expiry date from the selected collection
+        current_expiry_date = domain_data.get(expiry_field)
+        if not current_expiry_date:
+            logging.error("Expiry date not found for the domain.")
+            return jsonify({"message": "Expiry date not found for the domain."}), 404
+
+        # Convert the expiry date to a datetime object
+        try:
+            current_expiry_date = datetime.strptime(current_expiry_date, "%d-%m-%Y")
+        except ValueError as e:
+            logging.error(f"Error parsing expiry date: {e}")
+            return jsonify({"message": "Invalid expiry date format."}), 400
+
+        # Add one year to the current expiry date
+        new_expiry_date = current_expiry_date + timedelta(days=365)
+
+        # Update the expiry date in the selected collection
+        result = collection.update_one(
+            {"Domain Name": domain},
+            {"$set": {expiry_field: new_expiry_date.strftime("%d-%m-%Y")}}
+        )
+
+        if result.modified_count == 0:
+            logging.error("Failed to update the expiry date.")
+            return jsonify({"message": "Failed to update the expiry date."}), 500
+
+        # Remove the domain from the expired_domains collection if it exists
+        expiring_domains_collection.delete_one({"Domain Name": domain})
+
+        logging.info("Domain renewed successfully!")
+        return jsonify({"message": "Domain renewed successfully!"}), 200
+    except Exception as e:
+        logging.error(f"Error renewing domain: {str(e)}")
+        return jsonify({"message": f"Error renewing domain: {str(e)}"}), 500
 
 @app.route("/get_safe_domains", methods=["GET"])
 def get_safe_domains():
@@ -565,6 +741,7 @@ def signup():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        role = request.form["role"]  # Get the role from the form
 
         existing_user = users_collection.find_one({"username": username})
         if existing_user:
@@ -572,7 +749,11 @@ def signup():
             return redirect(url_for("signup"))
 
         hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
-        users_collection.insert_one({"username": username, "password": hashed_password})
+        users_collection.insert_one({
+            "username": username,
+            "password": hashed_password,
+            "role": role  # Store the role in the database
+        })
         flash("Sign-up successful! Please log in.", "success")
         return redirect(url_for("login"))
 
@@ -587,8 +768,8 @@ def login():
 
         user = users_collection.find_one({"username": username})
         if user and bcrypt.check_password_hash(user["password"], password):
-            session["username"] = username  # Store the username in the session
-            logging.debug(f"User logged in with username: {session['username']}")
+            session["username"] = username
+            session["role"] = user["role"]  # Store the user's role in the session
             flash("Login successful!", "success")
             return redirect(url_for("list_of_domains"))
         else:

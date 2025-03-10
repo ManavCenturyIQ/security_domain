@@ -85,7 +85,9 @@
           <option value="Active">Active</option>
         </select>
         
-        <button class="btn btn-primary" onclick="openAddProviderForm()">
+        <button class="btn btn-primary" onclick="openAddProviderForm()" {% if session['role'] not in ['read_write', 'admin'] %} 
+        disabled 
+        {% endif %}>
           Add Provider
         </button>
 
@@ -103,17 +105,22 @@
           class="btn  btn-primary"
           data-bs-toggle="modal"
           data-bs-target="#addDomainModal"
-        >
+          {% if session['role'] not in ['read_write', 'admin'] %} 
+        disabled 
+        {% endif %}>
+        
+        
           Add Domain
         </button>
-        <button
-          id="sendAlertButton"
-          class="btn btn-primary"
-          onclick="sendAlert()"
-        >
-          Send Expiry Alert
-        </button>
-        <button id="exportButton" class="btn btn-primary">Export to Excel</button>
+        <button id="sendExpiryAlertButton" class="btn btn-primary" 
+        {% if session['role'] not in ['read_write', 'admin'] %} 
+        disabled 
+        {% endif %}>
+    Send Expiry Alert
+</button>
+        <button id="exportButton" class="btn btn-primary" {% if session['role'] not in ['read_write', 'admin'] %} 
+        disabled 
+        {% endif %}>Export to Excel</button>
       </div>
       <!-- Add Domain Form -->
       <div
@@ -301,6 +308,12 @@
                 >
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
+                <button class="btn btn-sm btn-info" onclick="sendRenewEmail('{{ domain['Domain Name'] }}')">R</button>
+                <button class="btn btn-sm btn-warning" onclick="sendDoNotRenewEmail('{{ domain['Domain Name'] }}')">DR</button>
+                <button class="btn btn-sm btn-success" onclick="renewDomain('{{ domain['Domain Name'] }}')">Renewed</button>
+                <td>
+                 
+                </td>
               </td>
             </tr>
             {% endfor %}
@@ -325,6 +338,68 @@
     
         // ... existing code
       });
+    </script>
+    <script>
+      function sendRenewEmail(domainName) {
+        fetch('/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            domain: domainName,
+            message: 'Please renew this domain.',
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Renew email sent successfully!');
+        })
+        .catch(error => {
+          console.error('Error sending renew email:', error);
+        });
+      }
+    
+      function sendDoNotRenewEmail(domainName) {
+        fetch('/send_email_dontrenew', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            domain: domainName,
+            message: 'Do not renew this domain.',
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Do not renew email sent successfully!');
+        })
+        .catch(error => {
+          console.error('Error sending do not renew email:', error);
+        });
+      }
+    
+      function renewDomain(domainName) {
+        fetch('/renew-domain', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            domain: domainName,
+          }),
+        })
+        .then(response => response.json())
+        .then(data => {
+          alert('Domain renewed successfully!');
+          // Optionally, update the expiry date in the UI
+          // You might need to refresh the page or update the specific row
+        })
+        .catch(error => {
+          console.error('Error renewing domain:', error);
+        });
+      }
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
@@ -448,6 +523,15 @@
       });
     </script>
     <script>
+      document.getElementById("sendExpiryAlertButton").addEventListener("click", function () {
+        // Check if the button is not disabled
+        if (!this.hasAttribute("disabled")) {
+          sendAlert();
+        } else {
+          alert("You do not have permission to perform this action.");
+        }
+      });
+    
       function sendAlert() {
         fetch("/send_expiry_alert", {
           method: "POST",
