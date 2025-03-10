@@ -13,7 +13,7 @@ import logging
 import requests
 from flask_bcrypt import Bcrypt
 from pymongo import MongoClient
-import os
+
 import base64
 import re
 import time
@@ -26,7 +26,8 @@ from io import BytesIO
 import pandas as pd
 from flask import Flask, request, send_file
 import io
-
+import os
+from dotenv import load_dotenv
 # from selenium import webdriver
 # from selenium.webdriver.chrome.options import Options
 # from selenium.webdriver.support.ui import WebDriverWait
@@ -36,11 +37,14 @@ import io
 app = Flask(__name__)
 
 # Secret Key for session management
-app.secret_key = "c8fbffbfc2945f2874d0a94358601404dda37225c9bdc8202c96088915748d70"  # Replace with your generated key
 
+app.secret_key = os.getenv("SECRET_KEY")
+DOMAINR_API_KEY = os.getenv("DOMAINR_API_KEY")
+MALICIOUS_API_KEY = os.getenv("MALICIOUS_API_KEY")
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 # RapidAPI credentials
-DOMAINR_API_KEY = "1604e06b15msh72f3c11668f51b8p1a7296jsn2774dabae534"
-MALICIOUS_API_KEY = "1604e06b15msh72f3c11668f51b8p1a7296jsn2774dabae534"
+
 
 # Initialize Bcrypt for password hashing
 bcrypt = Bcrypt(app)
@@ -60,8 +64,7 @@ trash_domain_collection = db["trash_domains"]
 domain_provider_collection = db["domain_providers"]
 logging.basicConfig(level=logging.DEBUG)
 # Your AWS Access and Secret Keys
-AWS_ACCESS_KEY = "AKIAWWX4V2ESN5YS2DEN"
-AWS_SECRET_KEY = "DuCp7LFg+cpnoPGrWTZ0PokgIeuX8jjGYrPEFy9G"
+
 
 # SES Region (e.g., us-east-1, us-west-2, etc.)
 AWS_REGION = "us-east-1"
@@ -1154,4 +1157,4 @@ def store_results_in_db(keyword, domain_results):
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8080)
+    app.run(debug=True)
