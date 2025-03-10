@@ -33,7 +33,8 @@ from dotenv import load_dotenv
 # from selenium.webdriver.support.ui import WebDriverWait
 # from selenium.webdriver.support import expected_conditions as EC
 # from selenium.webdriver.common.by import By
-
+dotenv_path = os.path.join(os.path.dirname(__file__), 'credentials', '.env')
+load_dotenv(dotenv_path)
 app = Flask(__name__)
 
 # Secret Key for session management
@@ -45,7 +46,7 @@ AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 # RapidAPI credentials
 
-
+print("Secret Key:", os.getenv("SECRET_KEY"))
 # Initialize Bcrypt for password hashing
 bcrypt = Bcrypt(app)
 
