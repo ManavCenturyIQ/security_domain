@@ -1154,4 +1154,4 @@ def store_results_in_db(keyword, domain_results):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080)
