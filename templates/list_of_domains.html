@@ -253,6 +253,11 @@
             <a href="owned_domains"><i class="fas fa-key"></i> Owned Domains</a>
         </div>
     </div>
+    {% if session['role'] == 'admin' %}
+    <div class="dropdown-one" style="flex-direction: column;">
+        <a href="{{ url_for('signup') }}"><i class="fas fa-user-plus"></i> Create new account</a>
+    </div>
+    {% endif %}
      
       </div>
       <div  style="display: flex; flex-direction: column">
