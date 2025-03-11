@@ -36,11 +36,240 @@
       .filter-container {
         margin-bottom: 20px;
       }
+      .sidebar {
+        width: 250px;
+        background: #2c3e50;
+        color: white;
+        padding: 15px;
+        /* height: 100%; */
+      }
+
+      .sidebar div {
+        display: flex;
+        /* align-items: center; */
+        padding: 12px;
+        cursor: pointer;
+      }
+
+      .sidebar a {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* This creates space between icon and text */
+        text-decoration: none;
+        color: white;
+        width: 100%;
+      }
+
+      .sidebar div:hover {
+        background: #34495e;
+      }
+
+      .dropdown {
+        display: flex;
+        align-items: center;
+      }
+
+      .dropdown-content {
+        display: none;
+        flex-direction: column;
+        padding-left: 30px;
+      }
+
+      .dropdown-content a {
+        padding: 8px 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        text-decoration: none;
+      }
+
+      .dropdown-content a:hover {
+        background: #3b5998;
+      }
+
+      .content {
+        /* margin-left: 250px; */
+        padding: 20px;
+        width: 100%;
+      }
+
+      h1 {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 2rem;
+        color: #4caf50;
+      }
+
+      .btn {
+        display: inline-block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        /* background-color: #4caf50; */
+        color: #fff;
+        text-decoration: none;
+        text-align: center;
+        font-size: 1rem;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+      }
+
+      .btn:hover {
+        background-color: #45a049;
+      }
+
+      .tabs {
+        display: flex;
+        justify-content: center;
+        margin: 20px auto;
+        gap: 10px;
+      }
+
+      .tab {
+        flex: 1;
+        text-align: center;
+        padding: 15px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px 5px 0 0;
+        background-color: #f9f9f9;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+
+      .tab.active {
+        background-color: #4caf50;
+        color: #fff;
+      }
+
+      .tab:hover {
+        background-color: #d4edda;
+        color: #4caf50;
+      }
+
+      .tab-content {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+        border-radius: 0 0 5px 5px;
+        padding: 20px;
+        background-color: #fff;
+        text-align: center;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      #content-text {
+        font-size: 1.2rem;
+        color: #555;
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      li {
+        /* background-color: #f0f0f0; */
+        margin: 5px 0;
+        padding: 10px;
+        border-radius: 5px;
+      }
+
+      .count-tab {
+        text-align: center;
+        margin: 10px auto;
+        font-size: 1rem;
+        color: #333;
+      }
+    
+        
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 1.5rem;
+        }
+
+        .tab {
+          font-size: 0.9rem;
+          padding: 10px 0;
+        }
+
+        .btn {
+          font-size: 0.9rem;
+          padding: 8px 16px;
+        }
+
+        .tab-content {
+          padding: 15px;
+        }
+      }
     </style>
   </head>
   <body>
+    <div class="d-flex">
+    <div class="sidebar">
+      <h5>DOMAIN CHECK</h5>
+      <div>
+        <a href="list_of_domains"><i class="fa-solid fa-house"></i>Home</a>
+      </div>
+<div class="dropdown-one" style="flex-direction: column;" onclick="toggleDomainDropdown()">
+<a><i class="fas fa-shield-alt"></i>Domain Check</a>
+
+</div>
+<div id="dropdownContent1" class="dropdown-content" style="display: none">
+
+      <!-- <div>
+        <a href="list_of_domains"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+      </div> -->
+      <div>
+        <a href="domain_check"><i class="fas fa-key"></i> Check Keywords</a>
+      </div>
+      <div class="dropdown" onclick="toggleDomainDropdown1()">
+        <a><i class="fas fa-globe"></i> Domain Details</a>
+      </div>
+      <div
+        class="dropdown-content1"
+        id="dropdownContent12"
+        style="display: none"
+      >
+        <a href="{{ url_for('safe_page') }}">Safe Domains</a>
+        <a href="{{ url_for('malicious_page') }}">Malicious Domains</a>
+        <a href="{{ url_for('manual_takedown') }}">Manual Take Down</a>
+      </div>
+
+      <div class="dropdown" onclick="toggleAccountDropdown2()">
+        <a><i class="fas fa-folder"></i> Account Pages</a>
+      </div>
+      <div
+        class="dropdown-content2"
+        id="dropdownContent13"
+        style="display: none"
+      >
+        <a href="{{ url_for('login') }}"
+          ><i class="fas fa-sign-in-alt"></i> Login</a
+        >
+        <a href="{{ url_for('signup') }}"
+          ><i class="fas fa-user-plus"></i> Sign In</a
+        >
+        <a href="{{ url_for('forgot_password') }}"
+          ><i class="fas fa-lock"></i> Forget Password</a
+        >
+      </div>
+    </div>
+    <div class="dropdown-one" style="flex-direction: column;" onclick="toggleDomainDropdownInventory()">
+      <a><i class="fas fa-server"></i>Domain Inventory</a>
+  </div>
+  <div>
+      <div id="dropdownContentKeywords" class="dropdown-content" style="display: none">
+          <a href="owned_domains"><i class="fas fa-key"></i> Owned Domains</a>
+      </div>
+  </div>
+    <div>
+     
+    </div>
+    </div>
     <div class="m-3">
-      <h1 class="mb-4">Owned Domains</h1>
+      <!-- <a href="{{ url_for('list_of_domains') }}" class="btn btn-primary mb-4">Home</a> -->
+      <!-- <h1 class="mb-4">Owned Domains</h1> -->
       <div class="filter-container">
         <label for="searchInput" class="form-label">Search Domains:</label>
         <input
@@ -319,6 +548,7 @@
         </table>
       </div>
     </div>
+  </div>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const rows = Array.from(document.querySelectorAll("tbody tr"));
@@ -706,6 +936,68 @@
           })
           .catch((error) => console.error("Error:", error));
       });
+    </script>
+    <script>
+      function toggleDomainDropdown() {
+        var dropdown = document.getElementById("dropdownContent1");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+
+      function toggleAccountDropdown() {
+        var dropdown = document.getElementById("dropdownContent2");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+      function toggleDomainDropdown1() {
+        var dropdown = document.getElementById("dropdownContent12");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+
+      function toggleAccountDropdown1() {
+        var dropdown = document.getElementById("dropdownContent12");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+      function toggleDomainDropdown2() {
+        var dropdown = document.getElementById("dropdownContent13");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+
+      function toggleAccountDropdown2() {
+        var dropdown = document.getElementById("dropdownContent13");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+      function toggleDomainDropdownInventory() {
+        var dropdown = document.getElementById("dropdownContentKeywords");
+        if (dropdown.style.display === "block") {
+          dropdown.style.display = "none";
+        } else {
+          dropdown.style.display = "block";
+        }
+      }
+      
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   </body>
