@@ -29,7 +29,7 @@
         background: #2c3e50;
         color: white;
         padding: 15px;
-        /* height: 100%; */
+        height: 100vh;
       }
 
       .sidebar div {
@@ -193,75 +193,64 @@
     <div style="display: flex">
       <div class="sidebar">
         <h5>DOMAIN CHECK</h5>
-        <div
-          class="dropdown-one"
-          style="flex-direction: column"
-          onclick="toggleDomainDropdown()"
-        >
-          <a><i class="fas fa-shield-alt"></i>Domain Check</a>
+        <div>
+          <a href="list_of_domains"><i class="fa-solid fa-house"></i>Home</a>
+        </div>
+  <div class="dropdown-one" style="flex-direction: column;" onclick="toggleDomainDropdown()">
+  <a><i class="fas fa-shield-alt"></i>Domain Check</a>
+  
+  </div>
+  <div id="dropdownContent1" class="dropdown-content" style="display: none">
+  
+        <!-- <div>
+          <a href="list_of_domains"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+        </div> -->
+        <div>
+          <a href="domain_check"><i class="fas fa-key"></i> Check Keywords</a>
+        </div>
+        <div class="dropdown" onclick="toggleDomainDropdown1()">
+          <a><i class="fas fa-globe"></i> Domain Details</a>
         </div>
         <div
-          id="dropdownContent1"
-          class="dropdown-content"
+          class="dropdown-content1"
+          id="dropdownContent12"
           style="display: none"
         >
-          <div>
-            <a href="list_of_domains"
-              ><i class="fa-solid fa-chart-line"></i> Dashboard</a
-            >
-          </div>
-          <div>
-            <a href="domain_check"><i class="fas fa-key"></i> Check Keywords</a>
-          </div>
-          <div class="dropdown" onclick="toggleDomainDropdown1()">
-            <a><i class="fas fa-globe"></i> Domain Details</a>
-          </div>
-          <div
-            class="dropdown-content1"
-            id="dropdownContent12"
-            style="display: none"
-          >
-            <a href="{{ url_for('safe_page') }}">Safe Domains</a>
-            <a href="{{ url_for('malicious_page') }}">Malicious Domains</a>
-            <a href="{{ url_for('manual_takedown') }}">Manual Take Down</a>
-          </div>
-
-          <div class="dropdown" onclick="toggleAccountDropdown2()">
-            <a><i class="fas fa-folder"></i> Account Pages</a>
-          </div>
-          <div
-            class="dropdown-content2"
-            id="dropdownContent13"
-            style="display: none"
-          >
-            <a href="{{ url_for('login') }}"
-              ><i class="fas fa-sign-in-alt"></i> Login</a
-            >
-            <a href="{{ url_for('signup') }}"
-              ><i class="fas fa-user-plus"></i> Sign In</a
-            >
-            <a href="{{ url_for('forgot_password') }}"
-              ><i class="fas fa-lock"></i> Forget Password</a
-            >
-          </div>
+          <a href="{{ url_for('safe_page') }}">Safe Domains</a>
+          <a href="{{ url_for('malicious_page') }}">Malicious Domains</a>
+          <a href="{{ url_for('manual_takedown') }}">Manual Take Down</a>
+        </div>
+  
+        <div class="dropdown" onclick="toggleAccountDropdown2()">
+          <a><i class="fas fa-folder"></i> Account Pages</a>
         </div>
         <div
-          class="dropdown-one"
-          style="flex-direction: column"
-          onclick="toggleDomainDropdownInventory()"
+          class="dropdown-content2"
+          id="dropdownContent13"
+          style="display: none"
         >
-          <a><i class="fas fa-server"></i>Domain Inventory</a>
-        </div>
-        <div>
-          <div
-            id="dropdownContentKeywords"
-            class="dropdown-content"
-            style="display: none"
+          <a href="{{ url_for('login') }}"
+            ><i class="fas fa-sign-in-alt"></i> Login</a
           >
-            <a href="owned_domains"><i class="fas fa-key"></i> Owned Domains</a>
-          </div>
+          <a href="{{ url_for('signup') }}"
+            ><i class="fas fa-user-plus"></i> Sign In</a
+          >
+          <a href="{{ url_for('forgot_password') }}"
+            ><i class="fas fa-lock"></i> Forget Password</a
+          >
         </div>
-        <div></div>
+      </div>
+      <div class="dropdown-one" style="flex-direction: column;" onclick="toggleDomainDropdownInventory()">
+        <a><i class="fas fa-server"></i>Domain Inventory</a>
+    </div>
+    <div>
+        <div id="dropdownContentKeywords" class="dropdown-content" style="display: none">
+            <a href="owned_domains"><i class="fas fa-key"></i> Owned Domains</a>
+        </div>
+    </div>
+      <div>
+       
+      </div>
       </div>
       <!-- <div class="col-6" style="justify-content: flex-start">
       <a href="{{ url_for('list_of_domains') }}" class="btn">Dashboard</a>
