@@ -442,7 +442,7 @@ def send_email():
         response = ses_client.send_email(
             Source=SENDER,
             Destination={
-                'ToAddresses': ["manav.ajmera@centuryiq.in"]
+                'ToAddresses': ["manav.ajmera@centuryiq.in","neeraj@century.ae"]
             },
             Message={
                 'Subject': {
@@ -501,7 +501,7 @@ def send_email_dontrenew():
         response = ses_client.send_email(
             Source=SENDER,
             Destination={
-                'ToAddresses': ["manav.ajmera@centuryiq.in"]
+                'ToAddresses': ["manav.ajmera@centuryiq.in","neeraj@century.ae"]
             },
             Message={
                 'Subject': {
@@ -1030,7 +1030,7 @@ def send_expiring_domains_email():
         # Send the email with the Excel attachment
         response = ses_client.send_raw_email(
             Source="donotreply@cfc.ae",
-            Destinations=["manav.ajmera@centuryiq.in"],
+            Destinations=["manav.ajmera@centuryiq.in","neeraj@century.ae"],
             RawMessage={
                 "Data": f"""From: {"donotreply@cfc.ae"}
 To: {"manavajmera03@gmail.com"}
