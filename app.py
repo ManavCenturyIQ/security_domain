@@ -742,6 +742,11 @@ def keywords():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+    # Check if the user is logged in and has the admin role
+    if 'role' not in session or session['role'] != 'admin':
+        flash("You must be an admin to access the signup page.", "warning")
+        return redirect(url_for("login"))
+
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -762,7 +767,6 @@ def signup():
         return redirect(url_for("login"))
 
     return render_template("signup.html")
-
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
