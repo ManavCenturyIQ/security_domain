@@ -90,6 +90,11 @@
       .dropdown-content a:hover {
         background: #3b5998;
       }
+      .btn:disabled{
+        color: white;
+        background-color: darkgray;
+        border: none;
+      }
 
       .content {
         /* margin-left: 250px; */
@@ -317,7 +322,7 @@
         
         <button class="btn btn-primary" onclick="openAddProviderForm()" {% if session['role'] not in ['read_write', 'admin'] %} 
         disabled 
-        {% endif %}>
+        {% endif %} onclick="showAlertIfDisabled(this)">
           Add Provider
         </button>
 
@@ -538,9 +543,27 @@
                 >
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
-                <button class="btn btn-sm btn-info" onclick="sendRenewEmail('{{ domain['Domain Name'] }}')">Renew</button>
-                <button class="btn btn-sm btn-warning" onclick="sendDoNotRenewEmail('{{ domain['Domain Name'] }}')">Don't Renew</button>
-                <button class="btn btn-sm btn-success" onclick="renewDomain('{{ domain['Domain Name'] }}')">Renewed</button>
+                <button class="btn btn-sm btn-info action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
+                {{ domain.get('Expiry Renewal Date', 'N/A') }}
+              {% elif domain.Provider == 'GoDaddy' %}
+                {{ domain.get('Expiration Date', 'N/A') }}
+              {% else %}
+                N/A
+              {% endif %}" onclick="sendRenewEmail('{{ domain['Domain Name'] }}')">Renew</button>
+      <button class="btn btn-sm btn-warning action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
+                  {{ domain.get('Expiry Renewal Date', 'N/A') }}
+                {% elif domain.Provider == 'GoDaddy' %}
+                  {{ domain.get('Expiration Date', 'N/A') }}
+                {% else %}
+                  N/A
+                {% endif %}" onclick="sendDoNotRenewEmail('{{ domain['Domain Name'] }}')">Don't Renew</button>
+      <button class="btn btn-sm btn-success action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
+                  {{ domain.get('Expiry Renewal Date', 'N/A') }}
+                {% elif domain.Provider == 'GoDaddy' %}
+                  {{ domain.get('Expiration Date', 'N/A') }}
+                {% else %}
+                  N/A
+                {% endif %}" onclick="renewDomain('{{ domain['Domain Name'] }}')">Renewed</button>
                 
               </td>
             </tr>
@@ -550,6 +573,32 @@
       </div>
     </div>
   </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const actionButtons = document.querySelectorAll('.action-button');
+  
+      actionButtons.forEach(button => {
+        const expiryDateStr = button.getAttribute('data-expiry');
+        console.log('Expiry Date:', expiryDateStr); // Log the expiry date
+        if (expiryDateStr !== 'N/A') {
+          // Parse the date in "day-month-year" format
+          const [day, month, year] = expiryDateStr.split('-');
+          const expiryDate = new Date(year, month - 1, day); // month is 0-indexed
+          const currentDate = new Date();
+          const timeDiff = expiryDate - currentDate;
+          const daysDiff = timeDiff / (1000 * 3600 * 24);
+  
+          if (daysDiff < 30) {
+            button.removeAttribute('disabled');
+          } else {
+            button.setAttribute('disabled', 'disabled');
+          }
+        } else {
+          button.setAttribute('disabled', 'disabled');
+        }
+      });
+    });
+  </script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const rows = Array.from(document.querySelectorAll("tbody tr"));
