@@ -574,31 +574,31 @@
     </div>
   </div>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const actionButtons = document.querySelectorAll('.action-button');
-  
-      actionButtons.forEach(button => {
-        const expiryDateStr = button.getAttribute('data-expiry');
-        console.log('Expiry Date:', expiryDateStr); // Log the expiry date
-        if (expiryDateStr !== 'N/A') {
-          // Parse the date in "day-month-year" format
-          const [day, month, year] = expiryDateStr.split('-');
-          const expiryDate = new Date(year, month - 1, day); // month is 0-indexed
-          const currentDate = new Date();
-          const timeDiff = expiryDate - currentDate;
-          const daysDiff = timeDiff / (1000 * 3600 * 24);
-  
-          if (daysDiff < 30) {
-            button.removeAttribute('disabled');
-          } else {
-            button.setAttribute('disabled', 'disabled');
-          }
+  document.addEventListener('DOMContentLoaded', function() {
+    const actionButtons = document.querySelectorAll('.action-button');
+
+    actionButtons.forEach(button => {
+      const expiryDateStr = button.getAttribute('data-expiry');
+      console.log('Expiry Date:', expiryDateStr); // Log the expiry date
+      if (expiryDateStr !== 'N/A') {
+        // Parse the date in "day-month-year" format
+        const [day, month, year] = expiryDateStr.split('-');
+        const expiryDate = new Date(year, month - 1, day); // month is 0-indexed
+        const currentDate = new Date();
+        const timeDiff = expiryDate - currentDate;
+        const daysDiff = timeDiff / (1000 * 3600 * 24);
+
+        if (daysDiff < 30) {
+          button.removeAttribute('disabled');
         } else {
           button.setAttribute('disabled', 'disabled');
         }
-      });
+      } else {
+        button.setAttribute('disabled', 'disabled');
+      }
     });
-  </script>
+  });
+</script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const rows = Array.from(document.querySelectorAll("tbody tr"));
