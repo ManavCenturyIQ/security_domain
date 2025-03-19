@@ -27,6 +27,7 @@ import pandas as pd
 from flask import Flask, request, send_file
 import io
 import os
+from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 # from selenium import webdriver
 # from selenium.webdriver.chrome.options import Options
@@ -93,6 +94,7 @@ We remain committed to protecting our clients and preserving the integrity of ou
 </html>
 """
 CHARSET = "UTF-8"
+# Initialize the scheduler
 
 
 @app.route("/send_email_takedown", methods=["POST"])
@@ -442,7 +444,7 @@ def send_email():
         response = ses_client.send_email(
             Source=SENDER,
             Destination={
-                'ToAddresses': ["manav.ajmera@centuryiq.in","neeraj@century.ae"]
+                'ToAddresses': ["manav.ajmera@centuryiq.in"]
             },
             Message={
                 'Subject': {
@@ -501,7 +503,7 @@ def send_email_dontrenew():
         response = ses_client.send_email(
             Source=SENDER,
             Destination={
-                'ToAddresses': ["manav.ajmera@centuryiq.in","neeraj@century.ae"]
+                'ToAddresses': ["manav.ajmera@centuryiq.in"]
             },
             Message={
                 'Subject': {
@@ -1034,7 +1036,7 @@ def send_expiring_domains_email():
         # Send the email with the Excel attachment
         response = ses_client.send_raw_email(
             Source="donotreply@cfc.ae",
-            Destinations=["manav.ajmera@centuryiq.in","neeraj@century.ae"],
+            Destinations=["manav.ajmera@centuryiq.in"],
             RawMessage={
                 "Data": f"""From: {"donotreply@cfc.ae"}
 To: {"manavajmera03@gmail.com"}
@@ -1159,6 +1161,19 @@ def store_results_in_db(keyword, domain_results):
             "timestamp": datetime.utcnow(),  # Store the current UTC time
         }
     )
+
+# Initialize the scheduler
+scheduler = BackgroundScheduler()
+
+# Schedule the send_expiring_domains_email function to run every 5 days
+scheduler.add_job(send_expiring_domains_email, 'interval', days=5)
+
+# Start the scheduler
+scheduler.start()
+
+# Ensure the scheduler is shut down when the app exits
+import atexit
+atexit.register(lambda: scheduler.shutdown())
 
 
 if __name__ == "__main__":
