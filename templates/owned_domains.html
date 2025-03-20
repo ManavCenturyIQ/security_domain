@@ -311,9 +311,10 @@
 
         <select id="providerFilter" class="form-select w-auto d-inline-block">
           <option value="all">All</option>
-          <option value="Only Domains">Only Domains</option>
+          <option value="Only Domain">Only Domains</option>
           <option value="GoDaddy">GoDaddy</option>
         </select>
+        
         <label for="reminderFilter" class="form-label ms-3"
           >Filter by Reminder:</label
         >
@@ -757,21 +758,20 @@ function handleDateChange(event) {
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        
         const providerFilter = document.getElementById("providerFilter");
         const reminderFilter = document.getElementById("reminderFilter");
         const statusFilter = document.getElementById("statusFilter");
         const rows = document.querySelectorAll("tbody tr");
-
+    
         function filterRows() {
-          const selectedProvider = providerFilter.value;
+          const selectedProvider = providerFilter.value.toLowerCase();
           const selectedReminder = reminderFilter.value;
           const selectedStatus = statusFilter.value;
           let serialNumber = 1;
           rows.forEach((row) => {
+            const provider = row.getAttribute("data-provider").toLowerCase().trim();
             const providerMatch =
-              selectedProvider === "all" ||
-              row.getAttribute("data-provider") === selectedProvider;
+              selectedProvider === "all" || provider === selectedProvider;
             const reminderMatch =
               selectedReminder === "all" ||
               row.querySelector(".reminder").style.backgroundColor ===
@@ -787,47 +787,13 @@ function handleDateChange(event) {
             }
           });
         }
-
+    
         providerFilter.addEventListener("change", filterRows);
         reminderFilter.addEventListener("change", filterRows);
         statusFilter.addEventListener("change", filterRows);
-
-        // Reminder logic
-        rows.forEach((row) => {
-          const expiryDateCell = row.cells[3];
-          const reminderCell = row.cells[4];
-          const expiryDateText = expiryDateCell.textContent.trim();
-
-          if (expiryDateText !== "N/A") {
-            let expiryDate;
-            if (expiryDateText.includes("-")) {
-              // Assuming format is "day-month-year"
-              const [day, month, year] = expiryDateText.split("-");
-              expiryDate = new Date(year, month - 1, day);
-            } else if (expiryDateText.includes("/")) {
-              // Assuming format is "month/day/year"
-              const [month, day, year] = expiryDateText.split("/");
-              expiryDate = new Date(year, month - 1, day);
-            } else {
-              // Handle other formats if necessary
-              expiryDate = new Date(expiryDateText);
-            }
-
-            const currentDate = new Date();
-            const timeDiff = expiryDate - currentDate;
-            const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
-
-            if (dayDiff <= 0) {
-              reminderCell.style.backgroundColor = "red";
-            } else if (dayDiff <= 30) {
-              reminderCell.style.backgroundColor = "orange";
-            } else {
-              reminderCell.style.backgroundColor = "green";
-            }
-          }
-        });
-
-        filterRows(); // Initial filter
+    
+        // Initial filter
+        filterRows();
       });
     </script>
     <script>
@@ -898,7 +864,7 @@ function handleDateChange(event) {
             console.error("Error adding domain:", error);
           });
       }
-    </script>
+    </>
     <script>
       function deleteDomain(button, domainName) {
         fetch("/delete_domain", {
