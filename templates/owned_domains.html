@@ -553,27 +553,9 @@
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
                 
-                <button class="btn btn-sm btn-info action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
-                {{ domain.get('Expiry Renewal Date', 'N/A') }}
-              {% elif domain.Provider == 'GoDaddy' %}
-                {{ domain.get('Expiration Date', 'N/A') }}
-              {% else %}
-                N/A
-              {% endif %}" onclick="sendRenewEmail('{{ domain['Domain Name'] }}')">Renew</button>
-      <button class="btn btn-sm btn-warning action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
-                  {{ domain.get('Expiry Renewal Date', 'N/A') }}
-                {% elif domain.Provider == 'GoDaddy' %}
-                  {{ domain.get('Expiration Date', 'N/A') }}
-                {% else %}
-                  N/A
-                {% endif %}" onclick="sendDoNotRenewEmail('{{ domain['Domain Name'] }}')">Don't Renew</button>
-      <button class="btn btn-sm btn-success action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
-                  {{ domain.get('Expiry Renewal Date', 'N/A') }}
-                {% elif domain.Provider == 'GoDaddy' %}
-                  {{ domain.get('Expiration Date', 'N/A') }}
-                {% else %}
-                  N/A
-                {% endif %}" onclick="renewDomain('{{ domain['Domain Name'] }}')">Renewed</button>
+                <button class="btn btn-sm btn-info action-button" data-expiry="{{ domain['Expiration Date'] }}" onclick="sendRenewEmail('{{ domain['Domain Name'] }}')">Renew</button>
+      <button class="btn btn-sm btn-warning action-button" data-expiry="{{ domain['Expiration Date'] }}" onclick="sendDoNotRenewEmail('{{ domain['Domain Name'] }}')">Don't Renew</button>
+      <button class="btn btn-sm btn-success action-button" data-expiry="{{ domain['Expiration Date'] }}" onclick="renewDomain('{{ domain['Domain Name'] }}')">Renewed</button>
                 
                 <input type="date" onchange="handleDateChange(event)" class="small-date-picker">
 
@@ -898,29 +880,34 @@ function handleDateChange(event) {
             console.error("Error adding domain:", error);
           });
       }
-    </>
-    <script>
-      function deleteDomain(button, domainName) {
-        fetch("/delete_domain", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ domain: domainName }),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            if (data.success) {
-              // Remove the row from the table
-              const row = button.closest("tr");
-              row.remove();
-            } else {
-              alert(data.message);
-            }
-          })
-          .catch((error) => console.error("Error:", error));
-      }
     </script>
+   <script>
+    function deleteDomain(button, domainName) {
+      fetch('/delete-domain', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          domain: domainName,
+        }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert(data.message);
+          // Optionally, remove the domain row from the table
+          const row = button.closest('tr');
+          row.parentNode.removeChild(row);
+        } else {
+          alert(data.message);
+        }
+      })
+      .catch(error => {
+        console.error('Error deleting domain:', error);
+      });
+    }
+  </script>
     <script>
       function openAddProviderForm() {
         const form = document.getElementById("addProviderForm");

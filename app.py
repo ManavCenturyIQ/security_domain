@@ -178,7 +178,6 @@ def send_email_takedown():
         return jsonify({"message": f"Error sending email: {str(e)}"}), 500
 
 
-@app.route("/delete_domain", methods=["POST"])
 def delete_domain():
     data = request.get_json()
     domain_name = data.get("domain")
