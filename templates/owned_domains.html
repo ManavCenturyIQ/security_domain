@@ -769,7 +769,7 @@ function handleDateChange(event) {
           const selectedStatus = statusFilter.value;
           let serialNumber = 1;
           rows.forEach((row) => {
-            const provider = row.getAttribute("data-provider").toLowerCase().trim();
+            const provider = row.getAttribute("data-provider").toLowerCase();
             const providerMatch =
               selectedProvider === "all" || provider === selectedProvider;
             const reminderMatch =
@@ -792,8 +792,42 @@ function handleDateChange(event) {
         reminderFilter.addEventListener("change", filterRows);
         statusFilter.addEventListener("change", filterRows);
     
-        // Initial filter
-        filterRows();
+        // Reminder logic
+        rows.forEach((row) => {
+          const expiryDateCell = row.cells[3];
+          const reminderCell = row.cells[4];
+          const expiryDateText = expiryDateCell.textContent.trim();
+    
+          if (expiryDateText !== "N/A") {
+            let expiryDate;
+            if (expiryDateText.includes("-")) {
+              // Assuming format is "day-month-year"
+              const [day, month, year] = expiryDateText.split("-");
+              expiryDate = new Date(year, month - 1, day);
+            } else if (expiryDateText.includes("/")) {
+              // Assuming format is "month/day/year"
+              const [month, day, year] = expiryDateText.split("/");
+              expiryDate = new Date(year, month - 1, day);
+            } else {
+              // Handle other formats if necessary
+              expiryDate = new Date(expiryDateText);
+            }
+    
+            const currentDate = new Date();
+            const timeDiff = expiryDate - currentDate;
+            const dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+    
+            if (dayDiff <= 0) {
+              reminderCell.style.backgroundColor = "red";
+            } else if (dayDiff <= 30) {
+              reminderCell.style.backgroundColor = "orange";
+            } else {
+              reminderCell.style.backgroundColor = "green";
+            }
+          }
+        });
+    
+        filterRows(); // Initial filter
       });
     </script>
     <script>
