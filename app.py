@@ -59,11 +59,12 @@ safe_domains_collection = db["safe_domains"]
 malicious_domains_collection = db["malicious_domains"]
 search_keywords_collection = db["search_keywords"]
 manual_takedown_collection = db["manual_takedown"]
-only_domain_collection = db["only_domain"]
-godaddy_collection = db["godaddy"]
+# only_domain_collection = db["only_domain"]
+# godaddy_collection = db["godaddy"]
 expiring_domains_collection = db["expiring_domains"]
 trash_domain_collection = db["trash_domains"]
 domain_provider_collection = db["domain_providers"]
+all_domains_collection = db["all_domains"]
 logging.basicConfig(level=logging.DEBUG)
 # Your AWS Access and Secret Keys
 
@@ -182,11 +183,8 @@ def delete_domain():
     data = request.get_json()
     domain_name = data.get("domain")
 
-    # Try to find and remove the domain from the only_domain collection
-    domain = only_domain_collection.find_one_and_delete({"Domain Name": domain_name})
-    if not domain:
-        # If not found, try to find and remove it from the godaddy collection
-        domain = godaddy_collection.find_one_and_delete({"Domain Name": domain_name})
+    # Try to find and remove the domain from the all_domains collection
+    domain = all_domains_collection.find_one_and_delete({"Domain Name": domain_name})
 
     if domain:
         # Insert the domain into the trash_domain collection
@@ -541,23 +539,17 @@ def renew_domain():
     domain = data.get("domain")
 
     try:
-        # Determine the provider by checking both collections
-        domain_data = only_domain_collection.find_one({"Domain Name": domain})
-        if domain_data:
-            provider = "Only Domains"
-            collection = only_domain_collection
-            expiry_field = "Expiry Renewal Date"
-        else:
-            domain_data = godaddy_collection.find_one({"Domain Name": domain})
-            if domain_data:
-                provider = "GoDaddy"
-                collection = godaddy_collection
-                expiry_field = "Expiration Date"
-            else:
-                logging.error("Domain not found in any provider's collection.")
-                return jsonify({"message": "Domain not found."}), 404
+        # Fetch the domain data from the all_domains collection
+        domain_data = all_domains_collection.find_one({"Domain Name": domain})
+        if not domain_data:
+            logging.error("Domain not found in the all_domains collection.")
+            return jsonify({"message": "Domain not found."}), 404
 
-        # Fetch the current expiry date from the selected collection
+        # Determine the provider and expiry field
+        provider = domain_data.get("Provider")
+        expiry_field = "Expiry Renewal Date" if provider == "Only Domains" else "Expiration Date"
+
+        # Fetch the current expiry date
         current_expiry_date = domain_data.get(expiry_field)
         if not current_expiry_date:
             logging.error("Expiry date not found for the domain.")
@@ -573,8 +565,8 @@ def renew_domain():
         # Add one year to the current expiry date
         new_expiry_date = current_expiry_date + timedelta(days=365)
 
-        # Update the expiry date in the selected collection
-        result = collection.update_one(
+        # Update the expiry date in the all_domains collection
+        result = all_domains_collection.update_one(
             {"Domain Name": domain},
             {"$set": {expiry_field: new_expiry_date.strftime("%d-%m-%Y")}}
         )
@@ -623,37 +615,20 @@ def get_malicious_domains():
 
 
 def store_expiring_domains():
-    # Fetch data from the existing collections
-    only_domains = list(
-        only_domain_collection.find(
-            {}, {"Domain Name": 1, "Expiry Renewal Date": 1, "_id": 0}
+    # Fetch data from the all_domains collection
+    all_domains = list(
+        all_domains_collection.find(
+            {}, {"Domain Name": 1, "Expiration Date": 1, "Expiry Renewal Date": 1, "Provider": 1, "_id": 0}
         )
     )
-
-    # Add provider information
-    for domain in only_domains:
-        domain["Provider"] = "Only Domains"
-
-    godaddy_domains = list(
-        godaddy_collection.find({}, {"Domain Name": 1, "Expiration Date": 1, "_id": 0})
-    )
-
-    # Add provider information
-    for domain in godaddy_domains:
-        domain["Provider"] = "GoDaddy"
-
-    # Combine the data
-    all_domains = only_domains + godaddy_domains
 
     # Get today's date and the date two days from now
     today = datetime.now().date()
-    two_days_from_now = today + timedelta(days=0)
+    two_days_from_now = today + timedelta(days=2)
 
     # Check for domains that are expired or expiring in 2 days
     for domain in all_domains:
-        expiry_date_str = domain.get("Expiry Renewal Date") or domain.get(
-            "Expiration Date"
-        )
+        expiry_date_str = domain.get("Expiry Renewal Date") or domain.get("Expiration Date")
         if expiry_date_str:
             expiry_date = datetime.strptime(expiry_date_str, "%d-%m-%Y").date()
             if expiry_date <= two_days_from_now:
@@ -664,7 +639,6 @@ def store_expiring_domains():
                     upsert=True,
                 )
 
-
 # Call this function where appropriate in your application
 store_expiring_domains()
 
@@ -674,52 +648,8 @@ def home():
     return render_template("welcome.html")
 
 
-@app.route("/only_domain")
-def only_domain():
-    # Fetch specific fields from the only_domain collection
-    domains = list(
-        only_domain_collection.find(
-            {},
-            {
-                "Domain Name": 1,
-                "Registrant": 1,
-                "Expiry Renewal Date": 1,
-                "Status  DNS": 1,  # Adjusted field name to match the CSV
-                "Nameserver1": 1,
-                "Nameserver2": 1,
-                "Nameserver3": 1,
-                "_id": 0,
-            },
-        )
-    )
-    logging.debug(f"Fetched domains: {domains}")
-    return render_template("only_domain.html", domains=domains)
 
 
-@app.route("/godaddy", methods=["GET"])
-def godaddy():
-    # Fetch specific fields from the godaddy collection
-    domains = list(
-        godaddy_collection.find(
-            {},
-            {
-                "Domain Name": 1,
-                "TLD": 1,
-                "Create Date": 1,
-                "Ownership Date": 1,
-                "Expiration Date": 1,
-                "Auto-renew": 1,
-                "Status": 1,
-                "ListingStatus": 1,
-                "Type": 1,
-                "Nameserver1": 1,
-                "Nameserver2": 1,
-                "_id": 0,
-            },
-        )
-    )
-    logging.debug(f"Fetched GoDaddy domains: {domains}")
-    return render_template("godaddy.html", domains=domains)
 
 
 @app.route("/keywords", methods=["GET"])
@@ -890,55 +820,22 @@ def list_of_domains():
         expiring_domains_count=expiring_domains_count,
     )
 
-
 @app.route("/owned_domains")
 def owned_domains():
-    # logging.basicConfig(level=logging.DEBUG)
-    # Fetch data from both collections
-    only_domains = list(
-        only_domain_collection.find(
+    # Fetch data from the all_domains collection
+    all_domains = list(
+        all_domains_collection.find(
             {},
             {
                 "Domain Name": 1,
-                "Registrant": 1,
-                "Expiry Renewal Date": 1,
-                "Status": 1,
-                "Nameserver1": 1,
-                "Nameserver2": 1,
-                "Nameserver3": 1,
-                "Provider Name": 1,  # Ensure Provider Name is fetched
-                "_id": 0,
-            },
-        )
-    )
-    # Add provider information
-    for domain in only_domains:
-        domain["Provider"] = domain.get("Provider Name", "Only Domains")
-
-    godaddy_domains = list(
-        godaddy_collection.find(
-            {},
-            {
-                "Domain Name": 1,
-                "TLD": 1,
-                "Create Date": 1,
-                "Ownership Date": 1,
                 "Expiration Date": 1,
-                "Auto-renew": 1,
                 "Status": 1,
-                "ListingStatus": 1,
-                "Type": 1,
-                "Nameserver1": 1,
-                "Nameserver2": 1,
+                "Provider": 1,
                 "Renewal Price": 1,
-                "Provider Name": 1,  # Ensure Provider Name is fetched
                 "_id": 0,
             },
         )
     )
-    # Add provider information
-    for domain in godaddy_domains:
-        domain["Provider"] = domain.get("Provider Name", "GoDaddy")
 
     # Fetch provider information from domain_providers collection
     domain_providers = list(
@@ -946,19 +843,14 @@ def owned_domains():
     )
     provider_names = [provider["Provider Name"] for provider in domain_providers]
 
-    # Combine the data
-    all_domains = only_domains + godaddy_domains
-
     # Extract unique providers
     providers = list(
         set(domain["Provider"] for domain in all_domains) | set(provider_names)
     )
-    logging.debug(f"Fetched GoDaddy domains: {godaddy_domains}")
+
     return render_template(
         "owned_domains.html", domains=all_domains, providers=providers
     )
-
-
 @app.route("/add_domain", methods=["POST"])
 def add_domain():
     data = request.json
@@ -968,38 +860,18 @@ def add_domain():
     status = data.get("status")
     renewal_price = data.get("renewalPrice", "Not Available")
 
-    if domain_provider == "Only Domains":
-        only_domain_collection.insert_one(
-            {
-                "Domain Name": domain_name,
-                "Registrant": "Unknown",  # You can modify this as needed
-                "Expiry Renewal Date": expiry_date,
-                "Status": status,
-                "Nameserver1": "ns1.onlydomains.com",  # Default values
-                "Nameserver2": "ns2.onlydomains.com",
-                "Nameserver3": "ns3.onlydomains.com",
-            }
-        )
-    elif domain_provider == "GoDaddy":
-        godaddy_collection.insert_one(
-            {
-                "Domain Name": domain_name,
-                "TLD": domain_name.split(".")[-1],
-                "Create Date": "Unknown",  # You can modify this as needed
-                "Ownership Date": "Unknown",
-                "Expiration Date": expiry_date,
-                "Auto-renew": "Unknown",
-                "Status": status,
-                "ListingStatus": "Unknown",
-                "Type": "Unknown",
-                "Nameserver1": "ns1.godaddy.com",  # Default values
-                "Nameserver2": "ns2.godaddy.com",
-                "Renewal Price": renewal_price,
-            }
-        )
+    # Insert the domain into the all_domains_collection
+    all_domains_collection.insert_one(
+        {
+            "Domain Name": domain_name,
+            "Provider": domain_provider,
+            "Expiration Date": expiry_date,
+            "Status": status,
+            "Renewal Price": renewal_price,
+        }
+    )
 
     return jsonify({"success": True, "message": "Domain added successfully!"})
-
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 # logging.basicConfig(level=logging.DEBUG)
 def send_expiring_domains_email():

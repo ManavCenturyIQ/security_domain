@@ -210,6 +210,20 @@
           padding: 15px;
         }
       }
+      .small-date-picker {
+    width: 120px;         /* Adjust the width */
+    height: 30px;          /* Adjust the height */
+    font-size: 14px;       /* Adjust the font size */
+    padding: 4px 8px;      /* Add some padding */
+    border: 1px solid #ccc; /* Add a subtle border */
+    border-radius: 4px;     /* Rounded corners */
+    outline: none;
+    transition: all 0.3s;   /* Smooth transition effect */
+}
+
+.small-date-picker:hover {
+    border-color: #007bff; /* Change border color on hover */
+}
     </style>
   </head>
   <body>
@@ -487,13 +501,7 @@
               <td>{{ domain['Domain Name'] }}</td>
               <td>{{ domain['Provider'] }}</td>
               <td>
-                {% if domain.Provider == 'Only Domains' %}
-                  {{ domain.get('Expiry Renewal Date', 'N/A') }}
-                {% elif domain.Provider == 'GoDaddy' %}
-                  {{ domain.get('Expiration Date', 'N/A') }}
-                {% else %}
-                  N/A
-                {% endif %}
+                {{ domain['Expiration Date'] }}
               </td>
               
               <td class="reminder"></td>
@@ -543,6 +551,7 @@
                 >
                   <i class="fa-solid fa-trash-can"></i>
                 </button>
+                
                 <button class="btn btn-sm btn-info action-button" data-expiry="{% if domain.Provider == 'Only Domains' %}
                 {{ domain.get('Expiry Renewal Date', 'N/A') }}
               {% elif domain.Provider == 'GoDaddy' %}
@@ -565,6 +574,10 @@
                   N/A
                 {% endif %}" onclick="renewDomain('{{ domain['Domain Name'] }}')">Renewed</button>
                 
+                <input type="date" onchange="handleDateChange(event)" class="small-date-picker">
+
+              
+              
               </td>
             </tr>
             {% endfor %}
@@ -573,6 +586,23 @@
       </div>
     </div>
   </div>
+  <script>
+    function openDatePicker(button) {
+    const dateInput = document.getElementById('hiddenDateInput');
+
+    // Use a slight delay to ensure the date picker shows up properly
+    setTimeout(() => {
+        dateInput.showPicker();  // Opens the date picker
+    }, 0);
+}
+
+function handleDateChange(event) {
+    const selectedDate = event.target.value;
+    console.log("Selected Date:", selectedDate);
+    alert(`You selected: ${selectedDate}`);
+}
+
+  </script>
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     const actionButtons = document.querySelectorAll('.action-button');
